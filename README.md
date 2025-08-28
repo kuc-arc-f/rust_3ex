@@ -10,6 +10,8 @@
 
 Rust Lang , example
 
+* rustc 1.88.0
+* cargo 1.88.0
 
 ***
 

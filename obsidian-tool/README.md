@@ -10,6 +10,9 @@
 
 obsidian , search tool
 
+* rustc 1.88.0
+* cargo 1.88.0
+
 ***
 ### setup
 
