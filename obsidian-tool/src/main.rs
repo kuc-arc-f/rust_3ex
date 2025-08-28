@@ -1,7 +1,9 @@
+use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use dotenvy::dotenv;
 
-static TARGET_DIR: &str = "/prog/Obsidian/vault/testvault";
+//static TARGET_DIR: &str = "/prog/Obsidian/vault/testvault";
 
 fn get_ext_items() -> Vec<String> {
     let mut items: Vec<String> = Vec::new();
@@ -44,10 +46,16 @@ fn list_files(dir: &Path) -> std::io::Result<Vec<PathBuf>> {
 }
 
 fn main() -> std::io::Result<()> {
+    dotenv().ok();
+
+    let code_path = env::var("DATA_PATH")
+      .expect("DATA_PATH must be set");
+    println!("code_path: {}", code_path);
+
     let ext_items = get_ext_items();
     //println!("{:?}", ext_items);
 
-    let target_dir = Path::new(TARGET_DIR); // ここを任意のフォルダに変更
+    let target_dir = Path::new(&code_path); // ここを任意のフォルダに変更
     let files = list_files(target_dir)?;
     //println!("{:?}", files);
     for file in &files {
