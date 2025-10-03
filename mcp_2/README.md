@@ -39,4 +39,9 @@ cargo build --release
 ```
 
 ***
+### Blog
+
+https://zenn.dev/link/comments/5672472fd1df32
+
+***
 
