@@ -41,7 +41,7 @@ struct PurchaseParams {
 fn purchase(product_name: String, price: i32) -> String {
     format!("「{}」を{}円で購入しました。", product_name, price)
 }
-const API_ENDPOINT: &'static str = "http://localhost:3000/api/data/create";
+const API_ENDPOINT: &'static str = "http://localhost:8787/api/data/create";
 
 async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
     match request.method.as_str() {
