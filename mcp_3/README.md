@@ -49,5 +49,11 @@ CREATE TABLE IF NOT EXISTS item_price (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
+
+***
+### Blog
+
+https://zenn.dev/link/comments/b11c7730acbace
+
 ***
 
