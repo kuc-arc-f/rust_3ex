@@ -43,6 +43,91 @@ fn purchase(product_name: String, price: i32) -> String {
 }
 const API_ENDPOINT: &'static str = "http://localhost:8787/api/data/create";
 
+async fn purchase_handler(params: Value, request_id: Option<Value>) -> JsonRpcResponse {
+    if let Some(tool_name) = params.get("name").and_then(|v| v.as_str()) {
+        if tool_name == "purchase" {
+            if let Some(arguments) = params.get("arguments") {
+                match serde_json::from_value::<PurchaseParams>(arguments.clone()) {
+                    Ok(purchase_params) => {
+                        let client = reqwest::Client::new();
+                        let post_data = PurchaseParams {
+                            name: purchase_params.name.clone(),
+                            price: purchase_params.price
+                        };    
+                        let json_string_variable = serde_json::to_string(&post_data).expect("JSON convert error");
+                        println!("変換されたJSON文字列: {}", json_string_variable);                         
+                        let send_data = json!({
+                            "content": "item_price",
+                            "data": &json_string_variable
+                        });
+                        match client.post(API_ENDPOINT).json(&send_data).send().await {
+                            Ok(api_res) => {
+                                if api_res.status().is_success() {
+                                    let result = purchase(purchase_params.name, purchase_params.price);
+                                    return JsonRpcResponse {
+                                        jsonrpc: "2.0".to_string(),
+                                        id: request_id,
+                                        result: Some(json!({
+                                            "content": [
+                                                {
+                                                    "type": "text",
+                                                    "text": result
+                                                }
+                                            ]
+                                        })),
+                                        error: None,
+                                    };
+                                } else {
+                                    return JsonRpcResponse {
+                                        jsonrpc: "2.0".to_string(),
+                                        id: request_id,
+                                        result: None,
+                                        error: Some(JsonRpcError {
+                                            code: -32000,
+                                            message: format!("API request failed with status: {}", api_res.status()),
+                                        }),
+                                    };
+                                }
+                            }
+                            Err(e) => {
+                                return JsonRpcResponse {
+                                    jsonrpc: "2.0".to_string(),
+                                    id: request_id,
+                                    result: None,
+                                    error: Some(JsonRpcError {
+                                        code: -32000,
+                                        message: format!("API request failed: {}", e),
+                                    }),
+                                };
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        return JsonRpcResponse {
+                            jsonrpc: "2.0".to_string(),
+                            id: request_id,
+                            result: None,
+                            error: Some(JsonRpcError {
+                                code: -32602,
+                                message: format!("Invalid parameters: {}", e),
+                            }),
+                        };
+                    }
+                }
+            }
+        }
+    }
+    JsonRpcResponse {
+        jsonrpc: "2.0".to_string(),
+        id: request_id,
+        result: None,
+        error: Some(JsonRpcError {
+            code: -32601,
+            message: "Tool not found".to_string(),
+        }),
+    }
+}
+
 async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
     match request.method.as_str() {
         "initialize" => JsonRpcResponse {
@@ -67,7 +152,6 @@ async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
                 "tools": [
                     {
                         "name": "purchase",
-                        //"description": "品名と価格を受け取り、購入処理を模倣します",
                         "description": "品名と価格を受け取り、値をAPIに送信します。",
                         "inputSchema": {
                             "type": "object",
@@ -90,88 +174,17 @@ async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
         },
         "tools/call" => {
             if let Some(params) = request.params {
-                if let Some(tool_name) = params.get("name").and_then(|v| v.as_str()) {
-                    if tool_name == "purchase" {
-                        if let Some(arguments) = params.get("arguments") {
-                            match serde_json::from_value::<PurchaseParams>(arguments.clone()) {
-                                Ok(purchase_params) => {
-                                    let client = reqwest::Client::new();
-                                    let post_data = PurchaseParams {
-                                        name: purchase_params.name.clone(),
-                                        price: purchase_params.price
-                                    };    
-                                    let json_string_variable = serde_json::to_string(&post_data).expect("JSON convert error");
-                                    println!("変換されたJSON文字列: {}", json_string_variable);                         
-                                    let send_data = json!({
-                                        "content": "item_price",
-                                        "data": &json_string_variable
-                                    });
-                                    match client.post(API_ENDPOINT).json(&send_data).send().await {
-                                        Ok(api_res) => {
-                                            if api_res.status().is_success() {
-                                                let result = purchase(purchase_params.name, purchase_params.price);
-                                                return JsonRpcResponse {
-                                                    jsonrpc: "2.0".to_string(),
-                                                    id: request.id,
-                                                    result: Some(json!({
-                                                        "content": [
-                                                            {
-                                                                "type": "text",
-                                                                "text": result
-                                                            }
-                                                        ]
-                                                    })),
-                                                    error: None,
-                                                };
-                                            } else {
-                                                return JsonRpcResponse {
-                                                    jsonrpc: "2.0".to_string(),
-                                                    id: request.id,
-                                                    result: None,
-                                                    error: Some(JsonRpcError {
-                                                        code: -32000,
-                                                        message: format!("API request failed with status: {}", api_res.status()),
-                                                    }),
-                                                };
-                                            }
-                                        }
-                                        Err(e) => {
-                                            return JsonRpcResponse {
-                                                jsonrpc: "2.0".to_string(),
-                                                id: request.id,
-                                                result: None,
-                                                error: Some(JsonRpcError {
-                                                    code: -32000,
-                                                    message: format!("API request failed: {}", e),
-                                                }),
-                                            };
-                                        }
-                                    }
-                                }
-                                Err(e) => {
-                                    return JsonRpcResponse {
-                                        jsonrpc: "2.0".to_string(),
-                                        id: request.id,
-                                        result: None,
-                                        error: Some(JsonRpcError {
-                                            code: -32602,
-                                            message: format!("Invalid parameters: {}", e),
-                                        }),
-                                    };
-                                }
-                            }
-                        }
-                    }
+                purchase_handler(params, request.id).await
+            } else {
+                JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32601,
+                        message: "Tool not found".to_string(),
+                    }),
                 }
-            }
-            JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32601,
-                    message: "Tool not found".to_string(),
-                }),
             }
         }
         _ => JsonRpcResponse {
