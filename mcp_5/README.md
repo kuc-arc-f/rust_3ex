@@ -8,7 +8,7 @@
 
 ***
 
-node.js + Rust , MCP server
+Rust , MCP Server
 
 * Turso libsql use , JSON-RPC 2.0
 
@@ -41,16 +41,10 @@ CREATE TABLE IF NOT EXISTS item_price (
 );
 ```
 
-***
-### Test
-* test: test_create.js
 
-```
-node test_create.js
-```
 
 ***
-* test-code
+* test-code: javascript
 
 ```js
 import { spawn } from "child_process";
