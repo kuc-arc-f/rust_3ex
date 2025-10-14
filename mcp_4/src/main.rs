@@ -110,7 +110,22 @@ async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
                             },
                             "required": []
                         }
-                    }                    
+                    },                    
+                    {
+                        "name": "purchase_delete",
+                        "description": "指定ID 値を受け取り、購入データを削除します。",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "number",
+                                    "description": "ID"
+                                }
+                            },
+                            "required": ["id"]
+                        }
+                    },
+
                 ]
             })),
             error: None,
@@ -122,6 +137,8 @@ async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
                         mod_purchase::purchase_handler(params, request.id).await
                     } else if tool_name == "purchase_list"{
                         mod_purchase::purchase_list_handler(params, request.id).await
+                    } else if tool_name == "purchase_delete"{
+                        mod_purchase::purchase_delete_handler(params, request.id).await
                     } else {
                         JsonRpcResponse {
                             jsonrpc: "2.0".to_string(),
