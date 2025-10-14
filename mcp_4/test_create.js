@@ -59,7 +59,7 @@ async function main() {
     "tools/call", 
     { 
       name: "purchase", 
-      arguments: {name: "green-tea", price: 120}, 
+      arguments: {name: "green-tea", price: 130}, 
     },
   );
   console.log("add結果:", result1);
