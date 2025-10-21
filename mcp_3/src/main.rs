@@ -56,6 +56,7 @@ fn purchase(product_name: String, price: i32) -> String {
 }
 
 mod mod_purchase;
+mod mod_diary;
 
 async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
     match request.method.as_str() {
@@ -121,6 +122,29 @@ async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
                             "required": ["id"]
                         }
                     },
+                    {
+                        "name": "diary_add",
+                        "description": "2行目以降の 日記の記事、メモ を取得して。APIに送信します。",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                                "text": {
+                                    "type": "string",
+                                    "description": "日記の記事"
+                                },
+                            },
+                            "required": ["text"]
+                        }
+                    },
+                    {
+                        "name": "diary_list",
+                        "description": "日記 記事リストを、表示します。",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {},
+                            "required": []
+                        }
+                    },
 
                 ]
             })),
@@ -135,6 +159,10 @@ async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
                         mod_purchase::purchase_list_handler(params, request.id).await
                     } else if tool_name == "purchase_delete"{
                         mod_purchase::purchase_delete_handler(params, request.id).await
+                    } else if tool_name == "diary_add"{
+                        mod_diary::diary_add_handler(params, request.id).await
+                    } else if tool_name == "diary_list"{
+                        mod_diary::diary_list_handler(params, request.id).await
                     } else {
                         JsonRpcResponse {
                             jsonrpc: "2.0".to_string(),
