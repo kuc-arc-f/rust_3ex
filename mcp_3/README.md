@@ -10,6 +10,7 @@
 
 Rust + Turso libsql , MCP server
 
+* GEMINI-CLI use
 ***
 ### setup
 
