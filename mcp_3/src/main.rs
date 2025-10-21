@@ -9,7 +9,7 @@ use std::io::{self, BufRead, Write};
 use dotenvy::dotenv;
 
 #[derive(Debug, Deserialize)]
-struct JsonRpcRequest {
+pub struct JsonRpcRequest {
     jsonrpc: String,
     id: Option<Value>,
     method: String,
@@ -17,7 +17,7 @@ struct JsonRpcRequest {
 }
 
 #[derive(Debug, Serialize)]
-struct JsonRpcResponse {
+pub struct JsonRpcResponse {
     jsonrpc: String,
     id: Option<Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -27,7 +27,7 @@ struct JsonRpcResponse {
 }
 
 #[derive(Debug, Serialize)]
-struct JsonRpcError {
+pub struct JsonRpcError {
     code: i32,
     message: String,
 }
@@ -38,83 +38,24 @@ struct AddTenParams {
 }
 
 #[derive(Debug, Deserialize,Serialize)]
-struct PurchaseParams {
+pub struct PurchaseParams {
     name: String,
     price: i32,
+}
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Item {
+    id: i64,
+    data: String,
+    created_at: String,
+    updated_at: String,
 }
 
 
 fn purchase(product_name: String, price: i32) -> String {
     format!("「{}」を{}円で購入しました。", product_name, price)
 }
-const API_ENDPOINT: &'static str = "http://localhost:8787/api/data/create";
 
-async fn purchase_handler(params: Value, request_id: Option<Value>) -> JsonRpcResponse {
-    dotenv().ok();
-    let url = env::var("TURSO_DATABASE_URL").expect("TURSO_DATABASE_URL must be set");
-    let token = env::var("TURSO_AUTH_TOKEN").expect("TURSO_AUTH_TOKEN must be set");
-    println!("TURSO_DATABASE_URL={}", url);
-    let db = Builder::new_remote(url, token).build().await.unwrap();
-    let conn = db.connect().unwrap();    
-
-    if let Some(tool_name) = params.get("name").and_then(|v| v.as_str()) {
-        if tool_name == "purchase" {
-            if let Some(arguments) = params.get("arguments") {
-                match serde_json::from_value::<PurchaseParams>(arguments.clone()) {
-                    Ok(purchase_params) => {
-                        let post_data = PurchaseParams {
-                            name: purchase_params.name.clone(),
-                            price: purchase_params.price
-                        };    
-                        let json_string_variable = serde_json::to_string(&post_data).expect("JSON convert error");
-                        println!("変換されたJSON文字列: {}", json_string_variable); 
-                        let sql = format!("INSERT INTO item_price (data) VALUES ('{}')", &json_string_variable);
-                        let mut result = conn
-                            .execute(&sql, ())
-                            .await
-                            .unwrap();
-
-                        let result = purchase(purchase_params.name, purchase_params.price);
-                        return JsonRpcResponse {
-                            jsonrpc: "2.0".to_string(),
-                            id: request_id,
-                            result: Some(json!({
-                                "content": [
-                                    {
-                                        "type": "text",
-                                        "text": result
-                                    }
-                                ]
-                            })),
-                            error: None,
-                        };                       
-
-                    }
-                    Err(e) => {
-                        return JsonRpcResponse {
-                            jsonrpc: "2.0".to_string(),
-                            id: request_id,
-                            result: None,
-                            error: Some(JsonRpcError {
-                                code: -32602,
-                                message: format!("Invalid parameters: {}", e),
-                            }),
-                        };
-                    }
-                }
-            }
-        }
-    }
-    JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request_id,
-        result: None,
-        error: Some(JsonRpcError {
-            code: -32601,
-            message: "Tool not found".to_string(),
-        }),
-    }
-}
+mod mod_purchase;
 
 async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
     match request.method.as_str() {
@@ -155,14 +96,67 @@ async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
                             },
                             "required": ["name", "price"]
                         }
-                    }
+                    },
+                    {
+                        "name": "purchase_list",
+                        "description": "購入品リストを、表示します。",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                            },
+                            "required": []
+                        }
+                    },                    
+                    {
+                        "name": "purchase_delete",
+                        "description": "指定ID 値を受け取り、購入データを削除します。",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "number",
+                                    "description": "ID"
+                                }
+                            },
+                            "required": ["id"]
+                        }
+                    },
+
                 ]
             })),
             error: None,
         },
         "tools/call" => {
             if let Some(params) = request.params {
-                purchase_handler(params, request.id).await
+                if let Some(tool_name) = params.get("name").and_then(|v| v.as_str()) {
+                    if tool_name == "purchase" {
+                        mod_purchase::purchase_handler(params, request.id).await
+                    } else if tool_name == "purchase_list"{
+                        mod_purchase::purchase_list_handler(params, request.id).await
+                    } else if tool_name == "purchase_delete"{
+                        mod_purchase::purchase_delete_handler(params, request.id).await
+                    } else {
+                        JsonRpcResponse {
+                            jsonrpc: "2.0".to_string(),
+                            id: request.id,
+                            result: None,
+                            error: Some(JsonRpcError {
+                                code: -32601,
+                                message: "Tool not found".to_string(),
+                            }),
+                        }
+                    }
+                } else{
+                    JsonRpcResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: None,
+                        error: Some(JsonRpcError {
+                            code: -32601,
+                            message: "Tool not found".to_string(),
+                        }),
+                    }
+                }
             } else {
                 JsonRpcResponse {
                     jsonrpc: "2.0".to_string(),
@@ -170,7 +164,7 @@ async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
                     result: None,
                     error: Some(JsonRpcError {
                         code: -32601,
-                        message: "Tool not found".to_string(),
+                        message: "arguments.name not found".to_string(),
                     }),
                 }
             }
