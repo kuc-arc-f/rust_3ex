@@ -4,13 +4,18 @@
 
  date    : 2025/10/26 
 
- update :
+ update : 2025/10/28
 
 ***
 
-Rust MCP server
+Rust MCP server , List excel output
 
 * Turso libsql use , JSON-RPC 2.0
+
+***
+* excel , download
+
+![img1](/image/mcp_cli_6-2.png)
 
 ***
 ### setup
