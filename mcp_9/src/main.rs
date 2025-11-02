@@ -80,6 +80,8 @@ async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
                         mod_data::data_delete_handler(params, request.id).await
                     } else if tool_name == "data_update"{
                         mod_data::data_update_handler(params, request.id).await
+                    } else if tool_name == "data_getone"{
+                        mod_data::data_getone_handler(params, request.id).await
                     } else {
                         JsonRpcResponse {
                             jsonrpc: "2.0".to_string(),
