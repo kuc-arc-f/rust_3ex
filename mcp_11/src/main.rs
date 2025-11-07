@@ -64,6 +64,10 @@ async fn handle_request(request: JsonRpcRequest) -> JsonRpcResponse {
                         mod_test::test_create_handler(params, request.id).await
                     } else if tool_name == "test_list" {
                         mod_test::test_list_handler(params, request.id).await
+                    } else if tool_name == "test_delete" {
+                        mod_test::test_delete_handler(params, request.id).await
+                    } else if tool_name == "test_update" {
+                        mod_test::test_update_handler(params, request.id).await
                     } else {
                         JsonRpcResponse {
                             jsonrpc: "2.0".to_string(),
