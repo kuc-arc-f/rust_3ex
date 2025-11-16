@@ -24,14 +24,15 @@ cargo build --release
 ```
 
 ***
-* .env
+* src/main.rs
 * POSTGRES_CONNECTION_STR set
 * GEMINI_API_KEY set
 
 ```
-POSTGRES_CONNECTION_STR=postgres://postgres:admin@localhost/postgres
-GEMINI_API_KEY=your-key
+static POSTGRES_CONNECTION_STR: &str = "postgres://postgres:admin@localhost/postgres";
+static GEMINI_API_KEY: &str = "your-key"
 ```
+
 ***
 * test-code: test_list.js
 
