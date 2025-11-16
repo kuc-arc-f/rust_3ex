@@ -1,3 +1,4 @@
+use dotenvy::dotenv;
 use reqwest::Client;
 use reqwest::Error;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
@@ -7,6 +8,7 @@ use sqlx::{PgPool, Row};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::FromRow;
 
+use std::env;
 use std::fs;
 use std::path::Path;
 use std::io::{self, Read};
@@ -14,8 +16,6 @@ use std::io::{self, Read};
 use unicode_segmentation::UnicodeSegmentation;
 use uuid::Uuid;
 
-static POSTGRES_CONNECTION_STR: &str = "";
-static GEMINI_API_KEY: &str = "";
 static MODEL_NAME: &str = "models/gemini-embedding-001";
 
 /// テキストをチャンクに分割する構造体
@@ -257,7 +257,10 @@ pub struct EmbeddingResult {
 */
 #[tokio::main]
 async fn main() {
-    let con_str = POSTGRES_CONNECTION_STR.to_string();
+    dotenv().ok();
+    let api_key = env::var("GEMINI_API_KEY").expect("GEMINI_API_KEY must be set");
+    let con_str = env::var("POSTGRES_CONNECTION_STR").expect("POSTGRES_CONNECTION_STR must be set");
+
     let pool = PgPoolOptions::new().max_connections(5)
     .connect(&con_str).await.expect("Failed to create pool");   
 
@@ -298,7 +301,7 @@ async fn main() {
 
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
-    headers.insert("x-goog-api-key", HeaderValue::from_str(&GEMINI_API_KEY).unwrap());
+    headers.insert("x-goog-api-key", HeaderValue::from_str(&api_key).unwrap());
 
     let send_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents".to_string();
     
