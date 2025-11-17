@@ -265,12 +265,11 @@ async fn main() {
     .connect(&con_str).await.expect("Failed to create pool");   
 
     let file_items = readTextData().unwrap();
-    //println!("{:?}", file_items[0]);
-    let file_items = readTextData().unwrap();
     if file_items.len() == 0 {
         print!("error, file_items = 0");
         return;
     }
+    //println!("{:?}", file_items[0]);
 
     let mut cont_Items: Vec<String> = Vec::new(); 
     
