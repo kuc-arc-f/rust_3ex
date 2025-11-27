@@ -61,6 +61,10 @@ target\debug\mcp_19.exe create
 target\debug\mcp_19.exe search
 ```
 
+***
+### blog
+
+https://zenn.dev/knaka0209/scraps/8f794f1292b323
 
 ***
 
