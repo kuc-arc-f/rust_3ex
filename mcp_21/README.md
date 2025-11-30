@@ -20,6 +20,9 @@ Rust MCP Server , RAG Search , Ollama
 https://github.com/kuc-arc-f/rust_3ex/tree/main/mcp_19
 
 ***
+* table: table.sql
+
+***
 * build
 
 ```
