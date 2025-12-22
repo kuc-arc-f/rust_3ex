@@ -17,6 +17,7 @@ use std::io::{self, Read};
 use unicode_segmentation::UnicodeSegmentation;
 use uuid::Uuid;
 
+mod mod_search;
 static MODEL_NAME: &str = "models/gemini-embedding-001";
 
 /// テキストをチャンクに分割する構造体
@@ -253,11 +254,57 @@ pub struct EmbeddingResult {
 #[tokio::main]
 async fn main() {
     dotenv().ok();
+    let query = "二十四節気".to_string();
     let api_key = env::var("GEMINI_API_KEY").expect("GEMINI_API_KEY must be set");
     let con_str = env::var("POSTGRES_CONNECTION_STR").expect("POSTGRES_CONNECTION_STR must be set");
 
     let pool = PgPoolOptions::new().max_connections(5)
     .connect(&con_str).await.expect("Failed to create pool");   
+    // 引数をベクターとして収集
+    let args: Vec<String> = env::args().collect();
+    // 注意: args[0] は実行ファイルのパスが入ります
+    println!("実行パス: {}", args[0]);
+    if args.len() > 1 {
+        println!("第一引数: {}", args[1]);
+        if args[1].len() > 0 {
+            if args[1] == "search" {
+                println!("search-mode.query: {}\n", query);
+                let resp = mod_search::CheckSimalirity(query).await;
+                let send_text = format!("日本語で、回答して欲しい。\n{}", resp);
+                println!("send_text={}\n", send_text);
+
+                let send_url = format!("https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key={}" , api_key);
+                let body = json!({
+                    "contents": [{
+                        "parts":[{"text": &send_text}]
+                    }]
+                });
+                let client = reqwest::Client::new();
+                let res = client
+                    .post(&send_url)
+                    .json(&body)
+                    .send()
+                    .await.unwrap();
+
+                println!("Status: {:?}", res.status());  
+                let mut out_text: String = "".to_string();
+                if res.status().is_success() {
+                    out_text = res.text().await.unwrap();
+                    println!("out_text: {}", out_text);
+                } else {
+                    println!("Error: {:?}", res.text().await.unwrap());
+                }
+                return;
+            }
+        } else {
+            println!("引数がありません");
+            return;
+        }
+    }
+    if args[1] != "create" {
+        println!("not, create-mode");
+        return;
+    }    
 
     let file_items = readTextData().unwrap();
     if file_items.len() == 0 {
@@ -283,7 +330,6 @@ async fn main() {
                     "text": &row_file.content
                 }]
             },
-            "output_dimensionality": 1024
         });    
         let res = client
             .post(&send_url)
@@ -313,9 +359,10 @@ async fn main() {
             println!("Request failed: {:?}", res.status());
             let text = res.text().await.unwrap();
             println!("Response text: {}", text);
-        }         
-    }
+        } 
+    }            
 }
+
 /**
 *
 * @param

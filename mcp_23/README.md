@@ -4,7 +4,7 @@
 
  date    : 2025/12/20
 
- update :
+ update : 2025/12/22
 
 ***
 
@@ -21,27 +21,22 @@ GEMINI_API_KEY=your-key
 ```
 ***
 * build
-
+* vector data add
 ```
 cargo build
-cargo run
+target\debug\mcp_23.exe create
 ```
-
+***
+* RAG search
+```
+target\debug\mcp_23.exe search
+```
 ***
 * data path: ./data
 
 ***
-* table
+* table: table.sql
 
-```
-CREATE EXTENSION IF NOT EXISTS vector;
-
-CREATE TABLE documents (
-  id SERIAL PRIMARY KEY,
-  content TEXT NOT NULL,
-  embedding vector(1024)
-);
-```
 ***
 
 
