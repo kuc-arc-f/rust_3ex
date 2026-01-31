@@ -1,0 +1,47 @@
+# mcp_29
+
+ Version: 0.9.1
+
+ date    : 2025/12/26
+
+ update :
+
+***
+
+Rust RAG Search , Qdrant
+
+* embedding: qwen3-embedding:0.6b
+* lfm2.5-thinking , ollama
+
+
+***
+* build
+
+```
+cargo build
+```
+***
+* init, collection add
+```
+target\debug\mcp_29.exe init
+```
+
+* vector data add
+```
+target\debug\mcp_29.exe create
+```
+
+* RAG search
+```
+target\debug\mcp_29.exe search
+```
+
+
+***
+* data path: ./data
+
+***
+
+
+
+
