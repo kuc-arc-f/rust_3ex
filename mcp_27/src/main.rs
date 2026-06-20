@@ -178,9 +178,8 @@ fn readTextData()-> anyhow::Result<Vec<ReadParam>, String> {
         let entry = entry.unwrap();
         let path = entry.path();
 
-        // ファイルであり、拡張子が ".txt" であることを確認
-
-        if path.is_file() && path.extension().map_or(false, |ext| ext == "txt") {
+        //if path.is_file() && path.extension().map_or(false, |ext| ext == "txt") {
+        if path.is_file() && path.extension().map_or(false, |ext| ext == "txt" || ext == "md") {
             println!("\n[ファイル: {}]", path.display());
             let filename = path
                 .file_name()

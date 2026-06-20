@@ -41,6 +41,11 @@ target\debug\mcp_29.exe search
 * data path: ./data
 
 ***
+### blog
+
+https://zenn.dev/knaka0209/scraps/3ea0353fb0170b
+
+***
 
 
 
